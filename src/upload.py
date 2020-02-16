@@ -2,8 +2,10 @@
 
 import argparse
 import os
+import pydub
 import wave
 import scipy.io
+import glob
 
 
 
@@ -13,3 +15,14 @@ import scipy.io
 # print(args.dir)
 # print(type(args.dir))
 
+def upload_wav_to_db():
+  path = 'data/'
+  files = [f for f in glob.glob(path + "**/*.wav", recursive=True)]
+
+  for f in files:
+    print(f)
+
+    # open wav file
+
+    #call get_fingerprints() for each of it's samples
+    #insert all fingerprints to db with song_id, offset

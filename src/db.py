@@ -10,7 +10,7 @@ class DB():
     Database handler class
   '''
   def __init__(self, hostname, username, password, database):
-    # connect
+    # init db connection
     self.database = database
     try:
       self.connection = mysql.connect(
@@ -23,10 +23,13 @@ class DB():
     except e:
       print("Connection error: unable to connect to db")
 
-  def insert_fingerprint(self):
+  def insert_fingerprints(self, fingerprints):
+    # insert all fingerprints into db
     pass
-  def query(self):
+  def query(self, fingerprint):
+    # find matching fingerprints in db with the given fingerprint
     pass
   def matches(self):
+    # combine all matches for the unknown sample and calculate their offsets
     pass
   
