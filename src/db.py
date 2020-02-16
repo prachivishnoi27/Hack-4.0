@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+from sqlite3 import Error
 
 
 
@@ -20,25 +21,42 @@ class DB():
       # self.connection.autocommit(False)
       self.cursor = self.connection.cursor()
 
-    except e:
+    except Error as e:
       print("DB error: unable to connect to db")
 
 
-  def insert_fingerprint(self, sha, song_id, offset):
+  def insert_fingerprint(self, hash):
     # insert fingerprint into db
     # insert (sha, song_id, offset) tuple
+    sha, (song_id, offset) = hash
+    print(sha, song_id, offset)
+    comm = '''
+        INSERT INTO fingerprints(sha, song_id, offset)
+        VALUES("%s", "%s", "%s");
+      ''' % (str(sha), str(song_id), str(offset))
     try:  
-      self.connection.execute('''''')
+      self.cursor.execute(comm)
       self.connection.commit()
-    except e:
-      print("DB error: unable to insert to db")   
+    except Error as e:
+      print("DB error: unable to insert to db")
+      print(e) 
 
   def query(self, fingerprint):
     # find matching fingerprints in db with the given fingerprint
+    matches = []
+    comm = '''
+        SELECT * FROM fingerprints
+        WHERE sha = "%s";
+      ''' % (fingerprint)
     try:
-      self.connection.execute()
-    except e:
+      self.cursor.execute(comm)
+      rows = self.cursor.fetchall()
+      for row in rows:
+        matches.append(row['song_id'], row['offset'])
+    except Error as e:
       print("DB error: unable to query db")
+    
+    return matches
 
   def matches(self, fingerprints):
     # find all fingerprints matches with their offsets
@@ -47,8 +65,9 @@ class DB():
 
     for fp in fingerprints:
       sha, song_id, offset = fp
-      matches_for_curr_sha = self.connection.query(sha)
+      matches_for_curr_sha = self.cursor.query(sha)
       for row in matches_for_curr_sha:
+        # match song_id, diff in offset
         matches.append((row[0], row[1] - offset))
     
     return matches
