@@ -1,33 +1,47 @@
 # Listens to audio with noise and predicts it's name
 import pydub
+import pyaudio
 import wave
 from scipy.io import wavfile
 import utils
 from db import DB
 import glob
 import os
-
-def predict(sample):
-  '''
-    Predicts song from small unknown sample
-  '''
-
-  # get fingerprints with offset
-  # query each fingerprint to get matching fingerprints
-  # take all matching fingerprints and find the matching song_id
-  # return song details
-  pass
+import numpy as np
 
 
-def record(given_length=10):
-  '''
-    Records audio signal and convert it to required format
-  '''
 
-  # record audio signal of given_length
-  # clean audio (remove noise)
-  # return audio sample
-  pass
+def listen(seconds=7):
+  # open stream
+  au = pyaudio.PyAudio()
+  stream = au.open(format=pyaudio.paInt16,
+            channels=2,
+            rate=44100,
+            input=True,
+            frames_per_buffer=8192)
+  
+  print("* recording")
+  left, right = [], []
+  for i in range(0, int(44100 / 8192 * seconds)):
+    data = stream.read(8192)
+    nums = np.fromstring(data, np.int16)
+    left.extend(nums[1::2])
+    right.extend(nums[0::2])
+  print("* done recording")
+  
+  # close and stop the stream
+  stream.stop_stream()
+  stream.close()
+
+  db_client = DB('fingerprints.db')
+  
+  # match both channels
+  matches = []
+  matches.extend(utils.match(left, db_client))
+  matches.extend(utils.match(right, db_client))
+  
+  # align and return
+  return utils.align_matches(matches)
 
 
 def predict_from_file(file_path):
@@ -56,9 +70,11 @@ def extract_channels(path):
     channels.append(frames[:, channel])
   return channels
 
-path = 'data/query/test/'
-files = [f for f in glob.glob(path + "**/*.wav", recursive=True)]
+# path = 'data/query/test/'
+# files = [f for f in glob.glob(path + "**/*.wav", recursive=True)]
 
-for wavefile in files:
-  predict_from_file(wavefile)
-  print("Actual name: ", wavefile)
+# for wavefile in files:
+#   predict_from_file(wavefile)
+#   print("Actual name: ", wavefile)
+
+print(listen())

@@ -12,12 +12,6 @@ from db import DB
 
 
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument("dir", help="directory containing wav files")
-# args = parser.parse_args()
-# print(args.dir)
-# print(type(args.dir))
-
 def upload_wav_to_db():
   path = 'data/'
   files = [f for f in glob.glob(path + "**/*.wav", recursive=True)]
