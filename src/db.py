@@ -10,6 +10,7 @@ class DB():
   '''
     Database handler class
   '''
+  counter = 0
 
 
   def __init__(self, db_file):
@@ -36,7 +37,6 @@ class DB():
       ''' % (str(sha), str(song_id), str(offset))
     try:  
       self.cursor.execute(comm)
-      self.connection.commit()
     except Error as e:
       print("DB error: unable to insert to db")
       print(e) 
@@ -52,22 +52,30 @@ class DB():
       self.cursor.execute(comm)
       rows = self.cursor.fetchall()
       for row in rows:
-        matches.append(row['song_id'], row['offset'])
+        matches.append((row[1], row[2]))
     except Error as e:
       print("DB error: unable to query db")
     
     return matches
 
-  def matches(self, fingerprints):
+  def return_matches(self, fingerprints):
     # find all fingerprints matches with their offsets
     # for given list of fingerprints
     matches = []
 
+    x = 0
+
     for fp in fingerprints:
-      sha, song_id, offset = fp
-      matches_for_curr_sha = self.cursor.query(sha)
+      x += 1
+      sha, (song_id, offset) = fp
+      matches_for_curr_sha = self.query(sha)
+      if x % 100 == 0:
+        print(x)
       for row in matches_for_curr_sha:
         # match song_id, diff in offset
         matches.append((row[0], row[1] - offset))
+      
+      if x > 1000:
+        break
     
     return matches

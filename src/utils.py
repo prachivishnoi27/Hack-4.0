@@ -24,6 +24,7 @@ def fingerprint(sample, song_id, db_client):
   # db_client.insert_hashes(hashes)
   for hash in hashes:
     db_client.insert_fingerprint(hash)
+  db_client.connection.commit()
 
 def match(sample, db_client):
   """Used for matching unknown songs"""
